@@ -37,6 +37,7 @@ RUN apt-get install -y git cmake make htop wget python3 python3-pip python3-dev 
 # Fix Python3 and Python3-pip
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
+RUN python3 -m pip install wheel
 RUN python3 -m pip install numpy
 
 # Install Middle-Man
