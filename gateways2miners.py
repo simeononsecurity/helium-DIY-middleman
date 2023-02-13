@@ -119,7 +119,7 @@ class GW2Miner:
             elif msg['_NAME_'] == messages.MsgPullData.NAME:
                 self.handle_PULL_DATA(msg, addr)
             elif msg['_NAME_'] == messages.MsgTxAck.NAME:
-                self.handle_TX_ACK(msg)
+                self.handle_TX_ACK(msg, addr)
             elif msg['_NAME_'] == messages.MsgPushAck.NAME:
                 self.handle_PUSH_ACK(msg)
             elif msg['_NAME_'] == messages.MsgPullAck.NAME:
@@ -212,7 +212,6 @@ class GW2Miner:
             self.vgw_logger.info(f"forwarding PULL_RESP from {addr} to gateway {vgw.mac[-8:]}, (freq:{round(txpk['freq'], 2)}, sf:{txpk['datr']}, codr:{txpk['codr']}, size:{txpk['size']})")
 
 
-
         # make fake PUSH_DATA and forward to vgateways
         fake_push = messages.PULL_RESP2PUSH_DATA(msg, src_mac=vgw.mac)
         self.vgw_logger.info(f"created fake rxpk for PULL_RESP from vgw:{vgw.mac[-8:]}")
@@ -229,7 +228,7 @@ class GW2Miner:
             self.vminer_logger.info(f"discovered gateway mac:{msg['MAC'][-8:]} at {addr}. {len(self.gw_listening_addrs) + 1} total gateways")
         self.gw_listening_addrs[msg['MAC']] = addr
 
-    def handle_TX_ACK(self, msg):    
+    def handle_TX_ACK(self, msg, addr=None):    
         if "txpk_ack" in msg and "error" in msg["txpk_ack"]:
             error = msg["txpk_ack"]["error"]
 
@@ -254,6 +253,13 @@ class GW2Miner:
                 self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: UNKNOWN ERROR")
         else:
             self.logger.warning(f"Invalid TX_ACK packet received by gateway {self.mac[-8:]}")
+
+        dest_addr = self.gw_listening_addrs.get(msg['MAC'])
+        if dest_addr:
+            rawmsg = messages.encode_message(msg)
+            self.sock.sendto(rawmsg, dest_addr)
+            self.vminer_logger.info(f"forwarding TX_ACK to gateway {msg['MAC'][-8:]}")
+
 
     def handle_PUSH_ACK(self, msg):
         if "rxpk" in msg:
