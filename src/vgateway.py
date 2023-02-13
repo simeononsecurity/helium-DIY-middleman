@@ -15,7 +15,7 @@ else:
     from .modify_rxpk import RXMetadataModification
     from .messages import decode_message, encode_message, MsgPullData, MsgPushData, MsgPullResp
 
-class VirtualGatewayProtocol(protocol.DatagramProtocol):
+class VirtualGateway(protocol.DatagramProtocol):
     def __init__(self, mac, server_address, port_up, port_dn, rx_power_adjustment):
         """
         :param mac:
