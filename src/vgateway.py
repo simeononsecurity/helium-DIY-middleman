@@ -50,8 +50,8 @@ class VirtualGateway(protocol.DatagramProtocol):
         self.dead = False
 
         # Start a background task to monitor for dead miners
-        self.monitor_task = task.LoopingCall(self.monitor_miner)
-        self.monitor_task.start(5)  # check every 5 seconds
+        #self.monitor_task = task.LoopingCall(self.monitor_miner)
+        #self.monitor_task.start(5)  # check every 5 seconds
 
     # def monitor_miner(self):
     #     """
