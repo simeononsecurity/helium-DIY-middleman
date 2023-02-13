@@ -23,6 +23,10 @@ class VirtualGateway(protocol.DatagramProtocol):
         :param port_up:
         :param port_dn:
         """
+
+        # transport 
+        self.transport = None
+
         # port
         self.mac = mac
         self.port_up = port_up
@@ -59,6 +63,8 @@ class VirtualGateway(protocol.DatagramProtocol):
             self.dead = True
             self.logger.error(f"Mineral with address {self.server_address} is dead.")
 
+    def startProtocol(self):
+        self.transport = reactor.listenUDP(0, self)
 
     def get_stat(self):
         """
@@ -109,6 +115,10 @@ class VirtualGateway(protocol.DatagramProtocol):
         Sends PUSH_DATA message to miner with payload contents
         :param payload: raw payload
         """
+
+        if not self.transport:
+            self.transport = reactor.listenUDP(0, self)
+
         top = dict(
             _NAME_=MsgPushData.NAME,
             identifier=MsgPushData.IDENT,
@@ -124,6 +134,9 @@ class VirtualGateway(protocol.DatagramProtocol):
         """
         Sends PULL_DATA message to the network server.
         """
+        if not self.transport:
+            self.transport = reactor.listenUDP(0, self)
+            
         payload = dict(
             _NAME_=MsgPullData.NAME,
             identifier=MsgPullData.IDENT,
