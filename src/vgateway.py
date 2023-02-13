@@ -25,7 +25,10 @@ class VirtualGateway(protocol.DatagramProtocol):
         """
 
         # transport 
-        self.transport = None
+        if self.transport is not None:
+            self.transport.stopListening()
+            self.transport = None
+        assert self.transport == None
 
         # port
         self.mac = mac
