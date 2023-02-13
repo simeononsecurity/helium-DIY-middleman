@@ -39,7 +39,6 @@ RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 RUN python3 -m pip install wheel
 RUN python3 -m pip install numpy
-RUN python3 -m pip install twisted
 
 # Install Middle-Man
 RUN git clone https://github.com/simeononsecurity/helium-DIY-middleman.git
