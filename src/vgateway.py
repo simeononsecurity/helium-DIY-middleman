@@ -3,6 +3,8 @@ import time
 import random
 import logging
 import threading
+import socket
+
 
 if __name__ == "__main__":
     from modify_rxpk import RXMetadataModification
@@ -25,6 +27,7 @@ class VirtualGateway:
         self.port_up = port_up
         self.port_dn = port_dn
         self.server_address = server_address
+        self.socket = socket
 
         # counts number of received and transmitted packets for stats
         self.rxnb = 0
@@ -146,4 +149,3 @@ class VirtualGateway:
                 self.logger.error(f"Error sending PULL_DATA message: {e}")
                 sent = False
         return None, None
-
