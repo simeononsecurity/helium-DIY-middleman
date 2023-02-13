@@ -193,7 +193,7 @@ def PULL_RESP2PUSH_DATA(pull_resp, src_mac):
         ver=2,
         token=random.randint(0, 2**16-1),  # TODO: Make random token
         MAC=src_mac,
-        txMAC=src_mac,      # this is used to signal generated from tx originating at this mac
+        txMAC=src_mac,      # this is used to signal generated from tx originatng at this mac
         payload=None
     )
     txpk = pull_resp['data']['txpk']

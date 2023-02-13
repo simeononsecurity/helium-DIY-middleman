@@ -1,4 +1,3 @@
-#!/usr/bin/env python 
 
 import argparse
 import os
@@ -8,6 +7,7 @@ import time
 import socket
 import copy
 from hashlib import md5
+
 from src import messages
 from src.vgateway import VirtualGateway
 
