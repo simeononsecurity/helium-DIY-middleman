@@ -254,7 +254,11 @@ class GW2Miner:
         else:
             self.vgw_logger.warning(f"Invalid TX_ACK packet received by gateway {msg['MAC'][-8:]}")
 
-        dest_addr = self.gw_listening_addrs.get(msg['MAC'])
+        vgw = self.vgateways_by_addr.get(addr)
+        if not vgw:
+            self.vgw_logger.error(f"TX_ACK from unknown miner at {addr}, dropping transmit command")
+            return
+        dest_addr = self.gw_listening_addrs.get(vgw.mac)
         if dest_addr:
             rawmsg = messages.encode_message(msg)
             self.sock.sendto(rawmsg, dest_addr)
@@ -266,7 +270,7 @@ class GW2Miner:
         token = msg.get("token")
 
         # Log that the PULL_ACK packet has been successfully received
-        self.vgw_logger.debug("PUSH_ACK received with token %s", token)
+        self.vgw_logger.debug("PUSH_ACK received from {addr} with token %s", token)
 
 
     def handle_PULL_ACK(self, msg, addr=None):
@@ -283,7 +287,7 @@ class GW2Miner:
         token = msg.get("token")
 
         # Log that the PULL_ACK packet has been successfully received
-        self.vgw_logger.debug("PULL_ACK received with token %s", token)
+        self.vgw_logger.debug("PULL_ACK received from {addr} with token %s", token)
 
 
     def get_message(self, timeout=None):
