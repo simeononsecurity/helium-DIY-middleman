@@ -10,7 +10,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DOCKER_PLATFORMS: linux/amd64,linux/arm64
+      DOCKER_PLATFORMS: linux/amd64,linux/armhf,linux/arm64
 
 
     steps:
@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
     - 
       name: Build the Docker image
-      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/arm64 -t simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
+      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/armhf,linux/arm64 -t simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
     -
         name: Build and push
         uses: docker/build-push-action@v2
@@ -51,5 +51,5 @@ jobs:
         password: ${{ secrets.PAT_TOKEN }}
 
     - name: Build the simeononsecurity/helium_diy_middleman:latest Docker image for Github Registry
-      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
+      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/armhf,linux/arm64 -t ghcr.io/simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
 
