@@ -4,8 +4,6 @@ Parses messages as defined in https://github.com/Lora-net/packet_forwarder/blob/
 
 """
 
-
-
 import json
 import datetime as dt
 import random
