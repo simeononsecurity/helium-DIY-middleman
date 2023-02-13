@@ -183,7 +183,7 @@ settings.
 ### Docker Container Setup
 Examples:
 ```bash
-docker run --name diymiddleman -P -td simeononsecurity/helium_diy_middleman:latest      
+docker run --name diymiddleman -P -td curiousfokker/helium_diy_middleman:latest      
 ```
 ```bash
 docker run \
@@ -196,7 +196,7 @@ docker run \
     -e server_address=localhost \
     -e serv_port_up=1680 \
     -e serv_port_down=1680 \
-    --name diymiddleman -P -td simeononsecurity/helium_diy_middleman:latest
+    --name diymiddleman -P -td curiousfokker/helium_diy_middleman:latest
 ```    
 ## How It Works
 This software listens for UDP datagrams on the specified port (defaults to `1680`).  
@@ -231,6 +231,8 @@ To send valid stats messages each virtual gateway keeps track of the number of P
   - More sophisticated metadata modification to adapt to PoC changes.  The framework exists for this and much more sophistication can be added to the separate `modify_rxpk.py` code.
     Advanced metadata modification could include queries to an ETL database, querying ML models (either specific to a gateway or global), etc.
     An important point is the entire blockchain history and challenge history for these gateways and miners are available for determining appropriate metadata.
+  - Detection of dead miner or gateway (using ACKs).  There is no way to forget a miner or gateway without software restart.
+  - Transmission errors are silently ignored, for reliable transmissions these should be fed back to miners.
   - Security: this code is vulnerable to lots of attacks.  One possible attack is spoofing gateways.
   
 ## Disclaimers
