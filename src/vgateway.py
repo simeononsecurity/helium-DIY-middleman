@@ -2,7 +2,6 @@ import datetime as dt
 import time
 import random
 import logging
-import threading
 
 if __name__ == "__main__":
     from modify_rxpk import RXMetadataModification
@@ -11,9 +10,11 @@ else:
     from .modify_rxpk import RXMetadataModification
     from .messages import decode_message, encode_message, MsgPullData, MsgPushData, MsgPullResp
 
+
 class VirtualGateway:
     def __init__(self, mac, server_address, port_up, port_dn, rx_power_adjustment):
         """
+
         :param mac:
         :param socket:
         :param server_address:
@@ -26,37 +27,16 @@ class VirtualGateway:
         self.port_dn = port_dn
         self.server_address = server_address
 
+
         # counts number of received and transmitted packets for stats
         self.rxnb = 0
         self.txnb = 0
+
 
         # payload modifier
         self.rxmodifier = RXMetadataModification(rx_power_adjustment)
 
         self.logger = logging.getLogger(f"VGW:{self.mac[-2:]}")
-
-        # Keep track of the last ACK message received from the miner
-        self.last_ack_received = None
-        self.dead = False
-
-        # Start a background thread to monitor for dead miners
-        self.monitor_thread = threading.Thread(target=self.monitor_miner, daemon=True)
-        self.monitor_thread.start()
-
-    def monitor_miner(self):
-        """
-        Background thread to monitor for dead miners.
-        """
-        while True:
-            time.sleep(5)  # check every 5 seconds
-            if self.last_ack_received:
-                elapsed = (dt.datetime.utcnow() - self.last_ack_received).total_seconds()
-                if elapsed > 30:  # consider miner dead if 30 seconds have passed since last ACK
-                    self.dead = True
-                    self.logger.error(f"Mineral with address {self.server_address} is dead.")
-            else:
-                self.dead = True
-                self.logger.error(f"Mineral with address {self.server_address} is dead.")
 
 
     def get_stat(self):
