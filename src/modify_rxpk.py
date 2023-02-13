@@ -12,7 +12,7 @@ import time
 import logging
 import random
 import datetime as dt
-
+import numpy as np
 
 
 class RXMetadataModification:
@@ -37,7 +37,11 @@ class RXMetadataModification:
         # Simple RSSI level adjustment
         rxpk['rssi'] += self.rx_adjust
     
-        rxpk['lsnr'] = round(rxpk['lsnr'] + random.randint(-15, 10) * 0.1, 1)  # randomize snr +/- 1dB in 0.1dB increments
+        # More sophisticated randomization of SNR
+        mean = rxpk['lsnr']
+        std = 0.5  # adjust as needed
+        rxpk['lsnr'] = round(np.random.normal(mean, std), 1)
+        
         # clip after adjustments to ensure result is still valid
         rxpk['rssi'] = min(self.max_rssi, max(self.min_rssi, rxpk['rssi']))
         rxpk['lsnr'] = min(self.max_snr,  max(self.min_snr,  rxpk['lsnr']))
