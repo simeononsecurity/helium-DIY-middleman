@@ -33,7 +33,7 @@ RUN echo ${PATH}
 RUN apt-get update && apt-get install -y apt-utils && apt-get -y -f -m --show-progress full-upgrade
 
 # Install Supporting Software
-RUN apt-get install -y git cmake make htop wget python3 python3-pip python3-dev systemctl gcc curl gpg
+RUN apt-get install -y git cmake make htop wget python3 python3-pip python3-dev systemctl gcc curl gpg wheel
 # Fix Python3 and Python3-pip
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
