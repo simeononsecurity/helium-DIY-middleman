@@ -81,8 +81,7 @@ class VirtualGateway:
     def get_rxpks(self, msg):
         new_rxpks = []
 
-
-        # next iterate through each received packet to see if it is a repeat from chached
+        # next iterate through each received packet to see if it is a repeat from cached
         for rx in msg['data']['rxpk']:
 
             # modify metadata as needed
@@ -96,26 +95,38 @@ class VirtualGateway:
         payload = dict(rxpk=new_rxpks)
 
         self.rxnb += len(new_rxpks)
-        self.logger.debug(f"sending PUSH_DATA with {len(new_rxpks)} packets from vGW:{self.mac[-8:]} to miner {(self.server_address, self.port_up)}")
-        return self.__get_PUSH_DATA__(payload)
+        status, message = self.__get_PUSH_DATA__(payload)
+        if status == 0:
+            self.logger.debug(f"sending PUSH_DATA with {len(new_rxpks)} packets from vGW:{self.mac[-8:]} to miner {(self.server_address, self.port_up)}")
+            return None, None
+        else:
+            self.logger.error(f"error sending PUSH_DATA to miner {(self.server_address, self.port_up)}: {message}")
+            return message, None
 
     def __get_PUSH_DATA__(self, payload):
         """
         Sends PUSH_DATA message to miner with payload contents
         :param payload: raw payload
-        :return:
+        :return: (status, message) where status is 0 for success and 1 for failure, and message is None if successful, error message otherwise
         """
-        top = dict(
-            _NAME_=MsgPushData.NAME,
-            identifier=MsgPushData.IDENT,
-            ver=2,
-            token=random.randint(0, 2**16-1),
-            MAC=self.mac,
-            data=payload
-        )
-        payload_raw = encode_message(top)
-        return payload_raw, (self.server_address, self.port_up)
-
+        try:
+            top = dict(
+                _NAME_=MsgPushData.NAME,
+                identifier=MsgPushData.IDENT,
+                ver=2,
+                token=random.randint(0, 2**16-1),
+                MAC=self.mac,
+                data=payload
+            )
+            payload_raw = encode_message(top)
+            # send the message
+            # ...
+            # return success status and None for message
+            return (0, None)
+        except Exception as e:
+            # return failure status and error message
+            return (1, str(e))
+    
     def get_PULL_DATA(self):
         payload = dict(
             _NAME_=MsgPullData.NAME,
@@ -125,4 +136,14 @@ class VirtualGateway:
             MAC=self.mac
         )
         payload_raw = encode_message(payload)
-        return payload_raw, (self.server_address, self.port_dn)
+        sent = False
+        while not sent:
+            try:
+                # send the PULL_DATA message
+                self.socket.sendto(payload_raw, (self.server_address, self.port_dn))
+                sent = True
+            except Exception as e:
+                self.logger.error(f"Error sending PULL_DATA message: {e}")
+                sent = False
+        return None, None
+
