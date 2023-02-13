@@ -5,15 +5,12 @@ This is mostly a placeholder for more sophisticated modification but I want it i
 Things like syncronizing timestamps between multiple gateways (so timestamps appear in order) and
 better mapping of input RSSI/SNR to output RSSI/SNR, etc
 """
-
-
 import json
 import time
 import logging
 import random
 import datetime as dt
 import numpy as np
-
 
 class RXMetadataModification:
     def __init__(self, rx_adjust):
