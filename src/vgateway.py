@@ -2,9 +2,11 @@ import datetime as dt
 import time
 import random
 import logging
-import threading
-import socket
-
+from twisted.internet import defer
+from twisted.internet import protocol
+from twisted.internet import task
+from twisted.internet import threads
+from twisted.internet import reactor
 
 if __name__ == "__main__":
     from modify_rxpk import RXMetadataModification
@@ -13,11 +15,10 @@ else:
     from .modify_rxpk import RXMetadataModification
     from .messages import decode_message, encode_message, MsgPullData, MsgPushData, MsgPullResp
 
-class VirtualGateway:
+class VirtualGatewayProtocol(protocol.DatagramProtocol):
     def __init__(self, mac, server_address, port_up, port_dn, rx_power_adjustment):
         """
         :param mac:
-        :param socket:
         :param server_address:
         :param port_up:
         :param port_dn:
@@ -27,7 +28,6 @@ class VirtualGateway:
         self.port_up = port_up
         self.port_dn = port_dn
         self.server_address = server_address
-        self.socket = socket
 
         # counts number of received and transmitted packets for stats
         self.rxnb = 0
@@ -42,24 +42,22 @@ class VirtualGateway:
         self.last_ack_received = None
         self.dead = False
 
-        # Start a background thread to monitor for dead miners
-        self.monitor_thread = threading.Thread(target=self.monitor_miner, daemon=True)
-        self.monitor_thread.start()
+        # Start a background task to monitor for dead miners
+        self.monitor_task = task.LoopingCall(self.monitor_miner)
+        self.monitor_task.start(5)  # check every 5 seconds
 
     def monitor_miner(self):
         """
-        Background thread to monitor for dead miners.
+        Background task to monitor for dead miners.
         """
-        while True:
-            time.sleep(5)  # check every 5 seconds
-            if self.last_ack_received:
-                elapsed = (dt.datetime.utcnow() - self.last_ack_received).total_seconds()
-                if elapsed > 30:  # consider miner dead if 30 seconds have passed since last ACK
-                    self.dead = True
-                    self.logger.error(f"Mineral with address {self.server_address} is dead.")
-            else:
+        if self.last_ack_received:
+            elapsed = (dt.datetime.utcnow() - self.last_ack_received).total_seconds()
+            if elapsed > 30:  # consider miner dead if 30 seconds have passed since last ACK
                 self.dead = True
                 self.logger.error(f"Mineral with address {self.server_address} is dead.")
+        else:
+            self.dead = True
+            self.logger.error(f"Mineral with address {self.server_address} is dead.")
 
 
     def get_stat(self):
@@ -110,27 +108,22 @@ class VirtualGateway:
         """
         Sends PUSH_DATA message to miner with payload contents
         :param payload: raw payload
-        :return: (status, message) where status is 0 for success and 1 for failure, and message is None if successful, error message otherwise
         """
-        try:
-            top = dict(
-                _NAME_=MsgPushData.NAME,
-                identifier=MsgPushData.IDENT,
-                ver=2,
-                token=random.randint(0, 2**16-1),
-                MAC=self.mac,
-                data=payload
-            )
-            payload_raw = encode_message(top)
-            # send the message
-            # ...
-            # return success status and None for message
-            return (0, None)
-        except Exception as e:
-            # return failure status and error message
-            return (1, str(e))
-    
+        top = dict(
+            _NAME_=MsgPushData.NAME,
+            identifier=MsgPushData.IDENT,
+            ver=2,
+            token=random.randint(0, 2**16-1),
+            MAC=self.mac,
+            data=payload
+        )
+        payload_raw = encode_message(top)
+        self.transport.write(payload_raw, (self.server_address, self.port_up))
+
     def get_PULL_DATA(self):
+        """
+        Sends PULL_DATA message to the network server.
+        """
         payload = dict(
             _NAME_=MsgPullData.NAME,
             identifier=MsgPullData.IDENT,
@@ -139,13 +132,4 @@ class VirtualGateway:
             MAC=self.mac
         )
         payload_raw = encode_message(payload)
-        sent = False
-        while not sent:
-            try:
-                # send the PULL_DATA message
-                self.socket.sendto(payload_raw, (self.server_address, self.port_dn))
-                sent = True
-            except Exception as e:
-                self.logger.error(f"Error sending PULL_DATA message: {e}")
-                sent = False
-        return None, None
+        self.transport.write(payload_raw, (self.server_address, self.port_dn))
