@@ -189,7 +189,7 @@ def PULL_RESP2PUSH_DATA(pull_resp, src_mac):
         _NAME_=MsgPushData.NAME,
         identifier=MsgPushData.IDENT,
         ver=2,
-        token=random.randint(0, 2**16-1),  # TODO: Make random token
+        token=random.randint(0, 2**16 - 1),
         MAC=src_mac,
         txMAC=src_mac,      # this is used to signal generated from tx originatng at this mac
         payload=None
@@ -221,7 +221,7 @@ def trials():
         _NAME_=MsgPullData.NAME,
         identifier=MsgPullData.IDENT,
         ver=2,
-        token=0xABCD,  # TODO: Make random token
+        token=random.randint(0, 2**16 - 1),
         MAC='AA:55:5A:00:00:00:00:00'
     )
     print(f"encoding body: {payload}")
