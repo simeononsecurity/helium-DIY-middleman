@@ -53,18 +53,18 @@ class VirtualGateway(protocol.DatagramProtocol):
         self.monitor_task = task.LoopingCall(self.monitor_miner)
         self.monitor_task.start(5)  # check every 5 seconds
 
-    def monitor_miner(self):
-        """
-        Background task to monitor for dead miners.
-        """
-        if self.last_ack_received:
-            elapsed = (dt.datetime.utcnow() - self.last_ack_received).total_seconds()
-            if elapsed > 30:  # consider miner dead if 30 seconds have passed since last ACK
-                self.dead = True
-                self.logger.error(f"Mineral with address {self.server_address} is dead.")
-        else:
-            self.dead = True
-            self.logger.error(f"Mineral with address {self.server_address} is dead.")
+    # def monitor_miner(self):
+    #     """
+    #     Background task to monitor for dead miners.
+    #     """
+    #     if self.last_ack_received:
+    #         elapsed = (dt.datetime.utcnow() - self.last_ack_received).total_seconds()
+    #         if elapsed > 30:  # consider miner dead if 30 seconds have passed since last ACK
+    #             self.dead = True
+    #             self.logger.error(f"Mineral with address {self.server_address} is dead.")
+    #     else:
+    #         self.dead = True
+    #         self.logger.error(f"Mineral with address {self.server_address} is dead.")
 
     def startProtocol(self):
         self.transport = reactor.listenUDP(0, self)
