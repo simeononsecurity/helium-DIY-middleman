@@ -118,6 +118,101 @@ class GW2Miner:
                 self.handle_PULL_RESP(msg, addr)
             elif msg['_NAME_'] == messages.MsgPullData.NAME:
                 self.handle_PULL_DATA(msg, addr)
+            elif msg['_NAME_'] == messages.MsgTxAck.NAME:
+                self.handle_TX_ACK(msg)
+            elif msg['_NAME_'] == messages.MsgPushAck.NAME:
+                self.handle_PUSH_ACK(msg)
+            elif msg['_NAME_'] == messages.MsgPullAck.NAME:
+                self.handle_PULL_ACK(msg)
+
+    def handle_TX_ACK(self, msg):    
+        if "txpk_ack" in msg and "error" in msg["txpk_ack"]:
+            error = msg["txpk_ack"]["error"]
+
+            # handle different error values
+            if error == "NONE":
+                self.logger.debug(f"Downlink request accepted by gateway {self.mac[-8:]}")
+            elif error == "TOO_LATE":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: TOO_LATE")
+            elif error == "TOO_EARLY":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: TOO_EARLY")
+            elif error == "COLLISION_PACKET":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: COLLISION_PACKET")
+            elif error == "COLLISION_BEACON":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: COLLISION_BEACON")
+            elif error == "TX_FREQ":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: TX_FREQ")
+            elif error == "TX_POWER":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: TX_POWER")
+            elif error == "GPS_UNLOCKED":
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: GPS_UNLOCKED")
+            else:
+                self.logger.warning(f"Downlink request rejected by gateway {self.mac[-8:]}: UNKNOWN ERROR")
+        else:
+            self.logger.warning(f"Invalid TX_ACK packet received by gateway {self.mac[-8:]}")
+
+    def handle_PUSH_ACK(self, msg):
+        if "rxpk" in msg:
+            for rxpk in msg["rxpk"]:
+                time = rxpk["time"]
+                tmst = rxpk["tmst"]
+                freq = rxpk["freq"]
+                chan = rxpk["chan"]
+                rfch = rxpk["rfch"]
+                stat = rxpk["stat"]
+                modu = rxpk["modu"]
+                if modu == "LORA":
+                    datr = rxpk["datr"]
+                    codr = rxpk["codr"]
+                elif modu == "FSK":
+                    datr = rxpk["datr"]
+                rssi = rxpk["rssi"]
+                if "lsnr" in rxpk:
+                    lsnr = rxpk["lsnr"]
+                size = rxpk["size"]
+                data = rxpk["data"]
+                # process the received data as needed
+        elif "stat" in msg:
+            stat = msg["stat"]
+            time = stat["time"]
+            tacc = stat["tacc"]
+            lati = stat["lati"]
+            long = stat["long"]
+            alti = stat["alti"]
+            eha = stat["eha"]
+            eva = stat["eva"]
+            sats = stat["sats"]
+            rxnb = stat["rxnb"]
+            rxok = stat["rxok"]
+            rxfw = stat["rxfw"]
+            ackr = stat["ackr"]
+            dwnb = stat["dwnb"]
+            txnb = stat["txnb"]
+            # process the status data as needed
+        else:
+            self.logger.warning(f"Invalid PUSH_ACK packet received by gateway {self.mac[-8:]}")
+ 
+        def handle_PULL_ACK(self, msg):
+            """
+            Handle PULL_ACK packet from the server
+
+            This packet type is used by the server to confirm that the network route is open
+            and that the server can send PULL_RESP packets at any time.
+
+            :param msg: PULL_ACK packet as a bytes object
+            :return: None
+            """
+            # Extract the token from the message
+            token = msg[1:3]
+
+            # Check if the token matches the token from the previous PULL_DATA packet
+            if token != self.pull_data_token:
+                # If the token doesn't match, log an error and return
+                self.logger.error("PULL_ACK with invalid token received")
+                return
+
+            # Log that the PULL_ACK packet has been successfully received
+            self.logger.debug("PULL_ACK received with token %s", token.hex())
 
     def handle_PUSH_DATA(self, msg, addr=None):
         """
