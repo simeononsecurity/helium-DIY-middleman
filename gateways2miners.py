@@ -107,7 +107,7 @@ class GW2Miner:
             # logging.debug(f"loop time: {time.time() - start_ts:.4f}")
 
             msg, addr = self.get_message(timeout=5)
-
+            
             start_ts = time.time()
             if not msg:
                 continue
@@ -118,6 +118,12 @@ class GW2Miner:
                 self.handle_PULL_RESP(msg, addr)
             elif msg['_NAME_'] == messages.MsgPullData.NAME:
                 self.handle_PULL_DATA(msg, addr)
+            elif msg['_NAME_'] == messages.MsgTxAck.NAME:
+                self.handle_TX_ACK(msg, addr)
+            elif msg['_NAME_'] == messages.MsgPushAck.NAME:
+                self.handle_PUSH_ACK(msg, addr)
+            elif msg['_NAME_'] == messages.MsgPullAck.NAME:
+                self.handle_PULL_ACK(msg, addr)
 
     def handle_PUSH_DATA(self, msg, addr=None):
         """
@@ -205,8 +211,6 @@ class GW2Miner:
             self.sock.sendto(rawmsg, dest_addr)
             self.vgw_logger.info(f"forwarding PULL_RESP from {addr} to gateway {vgw.mac[-8:]}, (freq:{round(txpk['freq'], 2)}, sf:{txpk['datr']}, codr:{txpk['codr']}, size:{txpk['size']})")
 
-
-
         # make fake PUSH_DATA and forward to vgateways
         fake_push = messages.PULL_RESP2PUSH_DATA(msg, src_mac=vgw.mac)
         self.vgw_logger.info(f"created fake rxpk for PULL_RESP from vgw:{vgw.mac[-8:]}")
@@ -222,6 +226,18 @@ class GW2Miner:
         if msg['MAC'] not in self.gw_listening_addrs:
             self.vminer_logger.info(f"discovered gateway mac:{msg['MAC'][-8:]} at {addr}. {len(self.gw_listening_addrs) + 1} total gateways")
         self.gw_listening_addrs[msg['MAC']] = addr
+
+    def handle_TX_ACK(self, msg, addr=None): 
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"TX_ACK received from {mac_address}")
+
+    def handle_PUSH_ACK(self, msg, addr):
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {mac_address}")
+
+    def handle_PULL_ACK(self, msg, addr):
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {mac_address}")
 
     def get_message(self, timeout=None):
         """
