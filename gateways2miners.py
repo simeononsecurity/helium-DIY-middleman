@@ -107,7 +107,7 @@ class GW2Miner:
             # logging.debug(f"loop time: {time.time() - start_ts:.4f}")
 
             msg, addr = self.get_message(timeout=5)
-
+            
             start_ts = time.time()
             if not msg:
                 continue
@@ -228,67 +228,16 @@ class GW2Miner:
         self.gw_listening_addrs[msg['MAC']] = addr
 
     def handle_TX_ACK(self, msg, addr=None): 
-        print(msg)   
-        if "txpk_ack" in msg and "error" in msg["txpk_ack"]:
-            error = msg["txpk_ack"]["error"]
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"TX_ACK received from {mac_address}")
 
-            # handle different error values
-            if error == "NONE":
-                self.vgw_logger.debug(f"Downlink request accepted by gateway {msg['MAC'][-8:]}")
-            elif error == "TOO_LATE":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: TOO_LATE")
-            elif error == "TOO_EARLY":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: TOO_EARLY")
-            elif error == "COLLISION_PACKET":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: COLLISION_PACKET")
-            elif error == "COLLISION_BEACON":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: COLLISION_BEACON")
-            elif error == "TX_FREQ":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: TX_FREQ")
-            elif error == "TX_POWER":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: TX_POWER")
-            elif error == "GPS_UNLOCKED":
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: GPS_UNLOCKED")
-            else:
-                self.vgw_logger.warning(f"Downlink request rejected by gateway {msg['MAC'][-8:]}: UNKNOWN ERROR")
-        else:
-            self.vgw_logger.warning(f"Invalid TX_ACK packet received by gateway {msg['MAC'][-8:]}")
+    def handle_PUSH_ACK(self, msg, addr):
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {mac_address}")
 
-        vgw = self.vgateways_by_addr.get(addr)
-        if not vgw:
-            self.vgw_logger.error(f"TX_ACK from unknown miner at {addr}, dropping transmit command")
-            return
-        dest_addr = self.gw_listening_addrs.get(vgw.mac)
-        if dest_addr:
-            rawmsg = messages.encode_message(msg)
-            self.sock.sendto(rawmsg, dest_addr)
-            self.vminer_logger.info(f"forwarding TX_ACK to gateway {msg['MAC'][-8:]}")
-
-    def handle_PUSH_ACK(self, msg, addr=None):
-        print(msg)
-        # Extract the token from the message
-        token = msg.get("token")
-
-        # Log that the PULL_ACK packet has been successfully received
-        self.vgw_logger.debug("PUSH_ACK received from {addr} with token %s", token)
-
-
-    def handle_PULL_ACK(self, msg, addr=None):
-        """
-        Handle PULL_ACK packet from the server
-
-        This packet type is used by the server to confirm that the network route is open
-        and that the server can send PULL_RESP packets at any time.
-
-        :param msg: PULL_ACK packet as a dictionary
-        :return: None
-        """
-        # Extract the token from the message
-        token = msg.get("token")
-
-        # Log that the PULL_ACK packet has been successfully received
-        self.vgw_logger.debug("PULL_ACK received from {addr} with token %s", token)
-
+    def handle_PULL_ACK(self, msg, addr):
+        mac_address = msg.get('mac', addr)
+        self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {mac_address}")
 
     def get_message(self, timeout=None):
         """
