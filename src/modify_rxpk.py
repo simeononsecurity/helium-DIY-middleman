@@ -6,17 +6,15 @@ Things like syncronizing timestamps between multiple gateways (so timestamps app
 better mapping of input RSSI/SNR to output RSSI/SNR, etc
 """
 
-
 import json
 import time
 import logging
 import random
 import datetime as dt
 
-
-
 class RXMetadataModification:
     def __init__(self, rx_adjust):
+        # Initialize minimum and maximum values for RSSI and SNR
         self.min_rssi = -120
         self.max_rssi = -90  # valid to 50 miles via FSPL filter
         self.max_snr = 1.9
@@ -31,14 +29,20 @@ class RXMetadataModification:
         :param rxpk: per PUSH_DATA https://github.com/Lora-net/packet_forwarder/blob/master/PROTOCOL.TXT
         :return: object with metadata modified
         """
-
+        # Save original SNR, RSSI, and timestamp values
         old_snr, old_rssi, old_ts = rxpk['lsnr'], rxpk['rssi'], rxpk['tmst']
         
         # Simple RSSI level adjustment
         rxpk['rssi'] += self.rx_adjust
     
-        rxpk['lsnr'] = round(rxpk['lsnr'] + random.randint(-15, 10) * 0.1, 1)  # randomize snr +/- 1dB in 0.1dB increments
-        # clip after adjustments to ensure result is still valid
+        #rxpk['lsnr'] = round(rxpk['lsnr'] + random.randint(-15, 10) * 0.1, 1)  # randomize snr +/- 1dB in 0.1dB increments
+
+        # Randomize the SNR value within specified range
+        mean = rxpk['lsnr']
+        standard_deviation = 0.5
+        rxpk['lsnr'] = round(rxpk['lsnr'] + random.gauss(mean, standard_deviation), 1)
+
+        # Clip the updated SNR and RSSI values to ensure they are still valid
         rxpk['rssi'] = min(self.max_rssi, max(self.min_rssi, rxpk['rssi']))
         rxpk['lsnr'] = min(self.max_snr,  max(self.min_snr,  rxpk['lsnr']))
 
@@ -48,6 +52,8 @@ class RXMetadataModification:
         # also note 'time' is only available if there is a gps connected BUT time could be way off if there is a poor GPS fix
         # therefore compare to current time and only trust 'time' field if within 1.5s of now.  If 'time' is not available or
         # cannot be trusted, use the current time as assumed arrival time
+
+        # Modify the timestamp to be aligned with microseconds since midnight UTC
         ts_dt = dt.datetime.utcnow()
         gps_valid = False
         if 'time' in rxpk:
@@ -60,17 +66,23 @@ class RXMetadataModification:
             else:
                 gps_valid = True
 
+        # Calculate the elapsed microseconds since midnight UTC
         ts_midnight = dt.datetime(year=ts_dt.year, month=ts_dt.month, day=ts_dt.day, hour=0, minute=0, second=0, microsecond=0)
         elapsed_us = int((ts_dt-ts_midnight).total_seconds() * 1e6)
         elapsed_us_u32 = elapsed_us % 2**32
 
-        #print(f"elapsed us: {elapsed_us} ({elapsed_us/1e6}s), as u32 = {elapsed_us_u32}")
+        # If the source and destination MAC addresses are different, add the elapsed time to the offset
         if src_mac != dest_mac:
             rxpk['tmst'] = (elapsed_us_u32 + self.tmst_offset) % 2**32
+        # If the source and destination MAC addresses are the same, update the offset with the difference between the original timestamp and the elapsed time
         else:
             tmst_offset = (rxpk['tmst'] - elapsed_us_u32 + 2**32) % 2**32
-            #  print(f"updated tmst_offset from:{self.tmst_offset} to {tmst_offset} (error: {self.tmst_offset - tmst_offset})")
             self.tmst_offset = tmst_offset
+        
+        # Log the modifications made to the packet
         self.logger.debug(f"modified packet from GW {src_mac[-8:]} to vGW {dest_mac[-8:]}, rssi:{old_rssi}->{rxpk['rssi']}, lsnr:{old_snr}->{rxpk['lsnr']:.1f}, tmst:{old_ts}->{rxpk['tmst']} {'GPS SYNC' if gps_valid else ''}")
+        
+        # Return the modified RX packet
         return rxpk
+
 
