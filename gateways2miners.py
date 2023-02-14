@@ -151,7 +151,6 @@ class GW2Miner:
 
             # Receive a message from the socket
             msg, addr = self.get_message(timeout=5)
-
             # Update the start timestamp
             start_ts = time.time()
             # If no message was received, continue the loop
@@ -293,41 +292,63 @@ class GW2Miner:
         # Handle the fake PUSH_DATA message
         self.handle_PUSH_DATA(msg=fake_push, addr=None)
 
-    # Handle PULL_DATA message
-    def handle_PULL_DATA(self, msg, addr=None):
-        """
-        take PULL_DATA sent from gateways and record the destination (ip, port) where this gateway MAC can be reached
-        :param msg: dictionary containing header and contents of PULL_DATA message
-        :param addr: tuple of (ip, port) of message origin
-        :return:
-        """
-        # Check if the gateway MAC is not in the gw_listening_addrs
-        if msg['MAC'] not in self.gw_listening_addrs:
-            # Log a message indicating that a new gateway has been discovered
-            self.vminer_logger.info(f"discovered gateway mac:{msg['MAC'][-8:]} at {addr}. {len(self.gw_listening_addrs) + 1} total gateways")
-        # Update the gw_listening_addrs with the destination address
-        self.gw_listening_addrs[msg['MAC']] = addr
-
     # Handle TX_ACK message
-    def handle_TX_ACK(self, msg, addr=None): 
-        # Get the mac address from the message or the address
-        mac_address = msg.get('mac', addr)
-        # Log a debug message indicating that a TX_ACK has been received
-        self.vgw_logger.debug(f"TX_ACK received from {mac_address}")
+    def handle_TX_ACK(self, msg, addr):
+        #print(messages.MsgTxAck.decode(self.get_message))
+        # Extract the token and MAC address from the message
+        token = msg[1:3]
+        mac_address = msg.get('MAC', addr)
+        rawmsg = messages.encode_message(msg)
 
-    # Handle PUSH_ACK message
-    def handle_PUSH_ACK(self, msg, addr):
-        # Get the mac address from the message or the address
-        mac_address = msg.get('mac', addr)
-        # Log a debug message indicating that a PUSH_ACK has been received
-        self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {mac_address}")
+        # Extract the optional JSON object from the message
+        json_data = None
+        if len(msg) > 12:
+            json_data = msg[12:]
+
+        # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
+        if json_data:
+            json_obj = json.loads(json_data)
+            error = json_obj.get('txpk_ack', {}).get('error', 'NONE')
+            if error == 'NONE':
+                # Log a debug message indicating that the downlink request was accepted
+                self.vgw_logger.debug(f"Downlink request accepted by gateway at {mac_address}")
+                self.sock.sendto(rawmsg, addr)
+                self.vgw_logger.debug(f"Decoded Message: {msg}")
+                self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+            else:
+                # Log a debug message indicating that the downlink request was rejected
+                self.vgw_logger.debug(f"Downlink request rejected by gateway at {mac_address}: {error}")
+                self.sock.sendto(rawmsg, addr)
+                self.vgw_logger.debug(f"Decoded Message: {msg}")
+                self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+        else:
+            # Log a debug message indicating that the downlink request was accepted
+            self.vgw_logger.debug(f"Downlink request accepted by gateway at {mac_address}")
+            self.sock.sendto(rawmsg, addr)
+            self.vgw_logger.debug(f"Decoded Message: {msg}")
+            self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
 
     # Handle PULL_ACK message
     def handle_PULL_ACK(self, msg, addr):
-        # Get the mac address from the message or the address
-        mac_address = msg.get('mac', addr)
+        rawmsg = messages.encode_message(msg)
+        self.sock.sendto(rawmsg, addr)
+        self.vgw_logger.debug(f"Decoded Message: {msg}")
+        self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+        # Extract the mac address from the message
+        mac_address = msg.get('MAC', addr)
         # Log a debug message indicating that a PULL_ACK has been received
-        self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {mac_address}")
+        self.vgw_logger.debug(f"PULL_ACK received from gateway at {mac_address}")
+
+    # Handle PUSH_ACK message
+    def handle_PUSH_ACK(self, msg, addr):
+        rawmsg = messages.encode_message(msg)
+        self.sock.sendto(rawmsg, addr)
+        self.vgw_logger.debug(f"Decoded Message: {msg}")
+        self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+        # Get the mac address from the message or the address
+        mac_address = msg.get('MAC', addr)
+        # Log a debug message indicating that a PUSH_ACK has been received
+        self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {mac_address}")
 
     # Get the message from the socket
     def get_message(self, timeout=None):
