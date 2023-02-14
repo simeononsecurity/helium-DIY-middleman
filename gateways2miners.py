@@ -321,7 +321,7 @@ class GW2Miner:
             json_data = json.dumps(json_obj).encode('utf-8')
         # Encode the message with the updated JSON data and send it back to all the virtual gateways
         for vgw in self.vgw.values():
-            vgw_address = (vgw.ip, vgw.port)
+            vgw_address = (vgw.server_ip, vgw.port)
             rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': vgw.mac, 'data': json_data})
             self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
             self.sock.sendto(rawmsg, vgw_address)
