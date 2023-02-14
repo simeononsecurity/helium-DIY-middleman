@@ -292,6 +292,20 @@ class GW2Miner:
         # Handle the fake PUSH_DATA message
         self.handle_PUSH_DATA(msg=fake_push, addr=None)
 
+    def handle_PULL_DATA(self, msg, addr=None):
+        """
+        take PULL_DATA sent from gateways and record the destination (ip, port) where this gateway MAC can be reached
+        :param msg: dictionary containing header and contents of PULL_DATA message
+        :param addr: tuple of (ip, port) of message origin
+        :return:
+        """
+        # check if the gateway's MAC address is already recorded
+        if msg['MAC'] not in self.gw_listening_addrs:
+            # if not, log a message indicating a new gateway has been discovered
+            self.vminer_logger.info(f"discovered gateway mac:{msg['MAC'][-8:]} at {addr}. {len(self.gw_listening_addrs) + 1} total gateways")
+        # record the destination (ip, port) for the given MAC address
+        self.gw_listening_addrs[msg['MAC']] = addr
+
     # Handle TX_ACK message
     def handle_TX_ACK(self, msg, addr):
         #print(messages.MsgTxAck.decode(self.get_message))
