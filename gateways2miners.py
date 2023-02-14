@@ -306,6 +306,11 @@ class GW2Miner:
         # record the destination (ip, port) for the given MAC address
         self.gw_listening_addrs[msg['MAC']] = addr
 
+        self.vgateways_by_mac[mac] = vgw
+        # Store the virtual gateway in the dictionary of virtual gateways by address
+        self.vgateways_by_addr[(server_ip, config.get('serv_port_down'))] = vgw
+        self.vgateways_by_addr[(server_ip, config.get('serv_port_up'))] = vgw
+
     # Handle TX_ACK message
     def handle_TX_ACK(self, msg, addr):
         # Extract the token from the message
@@ -320,9 +325,10 @@ class GW2Miner:
             json_obj['token'] = token
             json_data = json.dumps(json_obj).encode('utf-8')
         # Encode the message with the updated JSON data and send it back to all the virtual gateways
-        for vgw in self.vgw.values():
-            vgw_address = (vgw.server_ip, vgw.port)
-            rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': vgw.mac, 'data': json_data})
+        for addr, vgw in self.vgateways_by_addr.items():
+            mac_address = self.vgateways_by_mac[vgw.mac].mac
+            vgw_address = (addr[0], addr[1])
+            rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': mac_address, 'data': json_data})
             self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
             self.sock.sendto(rawmsg, vgw_address)
             # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
@@ -345,11 +351,11 @@ class GW2Miner:
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
         rawmsg = messages.encode_message(msg)
-        for vgw in self.vgateways_by_mac.values():
-            vgw_address = (vgw.server_ip, vgw.port)
+        for addr, vgw in self.vgateways_by_addr.items():
+            vgw_address = (addr[0], addr[1])
             self.sock.sendto(rawmsg, vgw_address)
         # Log a debug message indicating that a PULL_ACK has been received
-        self.vgw_logger.debug(f"PULL_ACK received from gateway at {msg['MAC']}")
+        self.vgw_logger.debug(f"PULL_ACK received from gateway at {msg.get('MAC', addr)}")
 
     # Handle PUSH_ACK message
     def handle_PUSH_ACK(self, msg, addr):
@@ -357,8 +363,8 @@ class GW2Miner:
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
         rawmsg = messages.encode_message(msg)
-        for vgw in self.vgateways_by_mac.values():
-            vgw_address = (vgw.server_ip, vgw.port)
+        for addr, vgw in self.vgateways_by_addr.items():
+            vgw_address = (addr[0], addr[1])
             self.sock.sendto(rawmsg, vgw_address)
         # Log a debug message indicating that a PUSH_ACK has been received
         self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {msg.get('MAC', addr)}")
