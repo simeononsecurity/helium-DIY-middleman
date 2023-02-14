@@ -306,11 +306,6 @@ class GW2Miner:
         # record the destination (ip, port) for the given MAC address
         self.gw_listening_addrs[msg['MAC']] = addr
 
-        self.vgateways_by_mac[mac] = vgw
-        # Store the virtual gateway in the dictionary of virtual gateways by address
-        self.vgateways_by_addr[(server_ip, config.get('serv_port_down'))] = vgw
-        self.vgateways_by_addr[(server_ip, config.get('serv_port_up'))] = vgw
-
     # Handle TX_ACK message
     def handle_TX_ACK(self, msg, addr):
         # Extract the token from the message
