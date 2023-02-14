@@ -311,6 +311,7 @@ class GW2Miner:
     def handle_TX_ACK(self, msg, addr):
         # Extract the token from the message
         token = msg.get('token') or random.randint(0, 2**16 - 1)  # set token to random if it is none
+        self.vgw_logger.debug(f"Token: {token}")
         # Log the decoded message
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Update the JSON data with the correct token
