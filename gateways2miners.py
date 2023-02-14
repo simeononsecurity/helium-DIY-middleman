@@ -12,8 +12,6 @@ from hashlib import md5
 from src import messages
 from src.vgateway import VirtualGateway
 
-python
-Copy code
 class GW2Miner:
     def __init__(self, port, vminer_configs_paths, keepalive_interval=10, stat_interval=30, debug=True, tx_power_adjustment=0.0, rx_power_adjustment=0.0):
         """
