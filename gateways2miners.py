@@ -308,42 +308,36 @@ class GW2Miner:
 
     # Handle TX_ACK message
     def handle_TX_ACK(self, msg, addr):
-        #print(messages.MsgTxAck.decode(self.get_message))
-        # Extract the token and MAC address from the message
-        #token = msg[1:3]
-        mac_address = msg.get('MAC', addr)
-        rawmsg = messages.encode_message(msg)
+        # Extract the token from the message
+        token = msg['token']
+        # Log the decoded message
         self.vgw_logger.debug(f"Decoded Message: {msg}")
-        self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
-        self.sock.sendto(rawmsg, addr)
-
-        # Extract the optional JSON object from the message
-        # json_data = None
-        # if len(msg) > 12:
-        #     json_data = msg[12:]
-
-        # # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
-        # if json_data:
-        #     json_obj = json.loads(json_data)
-        #     error = json_obj.get('txpk_ack', {}).get('error', 'NONE')
-        #     if error == 'NONE':
-        #         # Log a debug message indicating that the downlink request was accepted
-        #         self.vgw_logger.debug(f"Downlink request accepted by gateway at {mac_address}")
-        #         self.sock.sendto(rawmsg, addr)
-        #         self.vgw_logger.debug(f"Decoded Message: {msg}")
-        #         self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
-        #     else:
-        #         # Log a debug message indicating that the downlink request was rejected
-        #         self.vgw_logger.debug(f"Downlink request rejected by gateway at {mac_address}: {error}")
-        #         self.sock.sendto(rawmsg, addr)
-        #         self.vgw_logger.debug(f"Decoded Message: {msg}")
-        #         self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
-        # else:
-        #     # Log a debug message indicating that the downlink request was accepted
-        #     self.vgw_logger.debug(f"Downlink request accepted by gateway at {mac_address}")
-        #     self.sock.sendto(rawmsg, addr)
-        #     self.vgw_logger.debug(f"Decoded Message: {msg}")
-        #     self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+        # Update the JSON data with the correct token
+        json_data = None
+        if len(msg) > 12:
+            json_data = msg[12:]
+            json_obj = json.loads(json_data)
+            json_obj['token'] = token
+            json_data = json.dumps(json_obj).encode('utf-8')
+        # Encode the message with the updated JSON data and send it back to all the virtual gateways
+        for vgw in self.vgw.values():
+            vgw_address = (vgw.ip, vgw.port)
+            rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': vgw.mac, 'data': json_data})
+            self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+            self.sock.sendto(rawmsg, vgw_address)
+            # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
+            if json_data:
+                json_obj = json.loads(json_data)
+                error = json_obj.get('txpk_ack', {}).get('error', 'NONE')
+                if error == 'NONE':
+                    # Log a debug message indicating that the downlink request was accepted
+                    self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
+                else:
+                    # Log a debug message indicating that the downlink request was rejected
+                    self.vgw_logger.debug(f"Downlink request rejected by gateway at {vgw_address}: {error}")
+            else:
+                # Log a debug message indicating that the downlink request was accepted
+                self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
 
     # Handle PULL_ACK message
     def handle_PULL_ACK(self, msg, addr):
