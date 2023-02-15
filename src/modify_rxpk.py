@@ -15,10 +15,10 @@ import datetime as dt
 class RXMetadataModification:
     def __init__(self, rx_adjust):
         # Initialize minimum and maximum values for RSSI and SNR
-        self.min_rssi = -120
+        self.min_rssi = -134
         self.max_rssi = -90  # valid to 50 miles via FSPL filter
-        self.max_snr = 1.9
-        self.min_snr = -9.9
+        self.max_snr = 2
+        self.min_snr = -23
         self.tmst_offset = 0
         self.rx_adjust = rx_adjust
         self.logger = logging.getLogger('RXMeta')
@@ -74,10 +74,11 @@ class RXMetadataModification:
         # If the source and destination MAC addresses are different, add the elapsed time to the offset
         if src_mac != dest_mac:
             rxpk['tmst'] = (elapsed_us_u32 + self.tmst_offset) % 2**32
-        # If the source and destination MAC addresses are the same, update the offset with the difference between the original timestamp and the elapsed time
         else:
             tmst_offset = (rxpk['tmst'] - elapsed_us_u32 + 2**32) % 2**32
+            print(f"updated tmst_offset from:{self.tmst_offset} to {tmst_offset} (error: {self.tmst_offset - tmst_offset})")
             self.tmst_offset = tmst_offset
+        rxpk['rssi'] = rxpk['rssis'] - int(rxpk['lsnr'])
         
         # Log the modifications made to the packet
         self.logger.debug(f"modified packet from GW {src_mac[-8:]} to vGW {dest_mac[-8:]}, rssi:{old_rssi}->{rxpk['rssi']}, lsnr:{old_snr}->{rxpk['lsnr']:.1f}, tmst:{old_ts}->{rxpk['tmst']} {'GPS SYNC' if gps_valid else ''}")
