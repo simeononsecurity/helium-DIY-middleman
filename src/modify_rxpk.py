@@ -15,7 +15,7 @@ import datetime as dt
 class RXMetadataModification:
     def __init__(self, rx_adjust):
         # Initialize minimum and maximum values for RSSI and SNR
-        self.min_rssi = -134
+        self.min_rssi = -120
         self.max_rssi = -90  # valid to 50 miles via FSPL filter
         self.max_snr = 2
         self.min_snr = -23
