@@ -364,9 +364,11 @@ class GW2Miner:
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
         rawmsg = messages.encode_message(msg)
-        for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
-            self.sock.sendto(rawmsg, (server_ip, port_dn))
-            self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+        # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
+        #     self.sock.sendto(rawmsg, (server_ip, port_dn))
+        #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+        self.sock.sendto(rawmsg, addr)
+        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: addr")
         # Log a debug message indicating that a PULL_ACK has been received
         self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {msg.get('MAC', addr)}")
 
@@ -376,9 +378,11 @@ class GW2Miner:
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
         rawmsg = messages.encode_message(msg)
-        for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
-            self.sock.sendto(rawmsg, (server_ip, port_dn))
-            self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+        # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
+        #     self.sock.sendto(rawmsg, (server_ip, port_dn))
+        #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+        self.sock.sendto(rawmsg, addr)
+        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: addr")
         # Log a debug message indicating that a PUSH_ACK has been received
         self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {msg.get('MAC', addr)}")
 
