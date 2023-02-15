@@ -165,8 +165,6 @@ class GW2Miner:
                 self.handle_PULL_RESP(msg, addr)
             elif msg['_NAME_'] == messages.MsgPullData.NAME:
                 self.handle_PULL_DATA(msg, addr)
-            elif msg['_NAME_'] == messages.MsgTxAck.NAME:
-                self.handle_TX_ACK(msg, addr)
             elif msg['_NAME_'] == messages.MsgPushAck.NAME:
                 self.handle_PUSH_ACK(msg, addr)
             elif msg['_NAME_'] == messages.MsgPullAck.NAME:
@@ -293,6 +291,15 @@ class GW2Miner:
         # Handle the fake PUSH_DATA message
         self.handle_PUSH_DATA(msg=fake_push, addr=None)
 
+        #handle TX_ACK
+        # Log the decoded message
+        self.vgw_logger.debug(f"PULL_RESP Decoded Message: {msg}")
+        rawmsg = messages.encode_message(msg)
+        self.vgw_logger.debug(f"PULL_RESP Raw Message: {rawmsg}, Addr: {addr}")
+        # Log a debug message indicating that a PULL_ACK has been received
+        self.vgw_logger.debug(f"PULL_RESP received from packet forwarder at {msg.get('MAC', addr)}")
+        self.handle_TX_ACK(self, msg, addr)
+
     def handle_PULL_DATA(self, msg, addr=None):
         """
         take PULL_DATA sent from gateways and record the destination (ip, port) where this gateway MAC can be reached
@@ -311,7 +318,7 @@ class GW2Miner:
     def handle_TX_ACK(self, msg, addr):
         # Extract the token from the message
         token = msg.get('token') or random.randint(0, 2**16 - 1)  # set token to random if it is none
-        self.vgw_logger.debug(f" Generated Token: {token}")
+        self.vgw_logger.debug(f" Recieved/Generated Token: {token}")
         # Log the decoded message
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Update the JSON data with the correct token
@@ -385,7 +392,6 @@ class GW2Miner:
         self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
         # Log a debug message indicating that a PUSH_ACK has been received
         self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {msg.get('MAC', addr)}")
-
 
     # Get the message from the socket
     def get_message(self, timeout=None):
