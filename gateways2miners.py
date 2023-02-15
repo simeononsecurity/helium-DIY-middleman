@@ -311,7 +311,7 @@ class GW2Miner:
     def handle_TX_ACK(self, msg, addr):
         # Extract the token from the message
         token = msg.get('token') or random.randint(0, 2**16 - 1)  # set token to random if it is none
-        self.vgw_logger.debug(f"Token: {token}")
+        self.vgw_logger.debug(f" Generated Token: {token}")
         # Log the decoded message
         self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Update the JSON data with the correct token
@@ -325,8 +325,24 @@ class GW2Miner:
         for addr, vgw in self.vgateways_by_addr.items():
             mac_address = self.vgateways_by_mac[vgw.mac].mac
             vgw_address = (addr[0], addr[1])
-            rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': mac_address, 'data': json_data})
+            payload = {
+                'ver': 2,
+                'token': token,
+                'identifier': messages.MsgTxAck.IDENT,
+                '_NAME_': messages.MsgTxAck.NAME,
+                '_UNIX_TS_': time.time(),
+                'MAC': mac_address,
+                'data': json_data
+                }
+            msg_obj = messages.MsgTxAck()
+            rawmsg = msg_obj.encode(payload)
+            #rawmsg = messages.encode_message({'ver': 2, 'token': token, '_NAME_': 'TX_ACK', '_UNIX_TS_': time.time(), 'MAC': mac_address, 'data': json_data})
             self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+            self.vgw_logger.debug(f"Identifier: {messages.MsgTxAck.IDENT}")
+            self.vgw_logger.debug(f"Name: {messages.MsgTxAck.NAME}")
+            self.vgw_logger.debug(f"Time: {time.time()}")
+            self.vgw_logger.debug(f"MAC Address: {mac_address}")
+            self.vgw_logger.debug(f"Data: {json_data}")
             self.sock.sendto(rawmsg, vgw_address)
             # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
             if json_data:
