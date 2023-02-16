@@ -165,10 +165,10 @@ class GW2Miner:
                 self.handle_PULL_RESP(msg, addr)
             elif msg['_NAME_'] == messages.MsgPullData.NAME:
                 self.handle_PULL_DATA(msg, addr)
-            elif msg['_NAME_'] == messages.MsgPushAck.NAME:
-                self.handle_PUSH_ACK(msg, addr)
-            elif msg['_NAME_'] == messages.MsgPullAck.NAME:
-                self.handle_PULL_ACK(msg, addr)
+            # elif msg['_NAME_'] == messages.MsgPushAck.NAME:
+            #     self.handle_PUSH_ACK(msg, addr)
+            # elif msg['_NAME_'] == messages.MsgPullAck.NAME:
+            #     self.handle_PULL_ACK(msg, addr)
 
     def handle_PUSH_DATA(self, msg, addr=None):
         """
@@ -298,7 +298,7 @@ class GW2Miner:
         self.vgw_logger.debug(f"PULL_RESP Raw Message: {rawmsg}, Addr: {addr}")
         # Log a debug message indicating that a PULL_ACK has been received
         self.vgw_logger.debug(f"PULL_RESP received from packet forwarder at {msg.get('MAC', addr)}")
-        self.handle_TX_ACK(self, msg, addr)
+        self.handle_TX_ACK(msg, addr)
 
     def handle_PULL_DATA(self, msg, addr=None):
         """
@@ -365,33 +365,33 @@ class GW2Miner:
                 # Log a debug message indicating that the downlink request was accepted
                 self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
 
-    # Handle PULL_ACK message
-    def handle_PULL_ACK(self, msg, addr):
-        # Log the decoded message
-        self.vgw_logger.debug(f"Decoded Message: {msg}")
-        # Encode the message and send it back to all the virtual gateways
-        rawmsg = messages.encode_message(msg)
-        # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
-        #     self.sock.sendto(rawmsg, (server_ip, port_dn))
-        #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
-        #self.sock.sendto(rawmsg, addr)
-        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
-        # Log a debug message indicating that a PULL_ACK has been received
-        self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {msg.get('MAC', addr)}")
+    # # Handle PULL_ACK message
+    # def handle_PULL_ACK(self, msg, addr):
+    #     # Log the decoded message
+    #     self.vgw_logger.debug(f"Decoded Message: {msg}")
+    #     # Encode the message and send it back to all the virtual gateways
+    #     rawmsg = messages.encode_message(msg)
+    #     # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
+    #     #     self.sock.sendto(rawmsg, (server_ip, port_dn))
+    #     #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+    #     #self.sock.sendto(rawmsg, addr)
+    #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
+    #     # Log a debug message indicating that a PULL_ACK has been received
+    #     self.vgw_logger.debug(f"PULL_ACK received from packet forwarder at {msg.get('MAC', addr)}")
 
-    # Handle PUSH_ACK message
-    def handle_PUSH_ACK(self, msg, addr):
-        # Log the decoded message
-        self.vgw_logger.debug(f"Decoded Message: {msg}")
-        # Encode the message and send it back to all the virtual gateways
-        rawmsg = messages.encode_message(msg)
-        # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
-        #     self.sock.sendto(rawmsg, (server_ip, port_dn))
-        #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
-        #self.sock.sendto(rawmsg, addr)
-        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
-        # Log a debug message indicating that a PUSH_ACK has been received
-        self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {msg.get('MAC', addr)}")
+    # # Handle PUSH_ACK message
+    # def handle_PUSH_ACK(self, msg, addr):
+    #     # Log the decoded message
+    #     self.vgw_logger.debug(f"Decoded Message: {msg}")
+    #     # Encode the message and send it back to all the virtual gateways
+    #     rawmsg = messages.encode_message(msg)
+    #     # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
+    #     #     self.sock.sendto(rawmsg, (server_ip, port_dn))
+    #     #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
+    #     #self.sock.sendto(rawmsg, addr)
+    #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
+    #     # Log a debug message indicating that a PUSH_ACK has been received
+    #     self.vgw_logger.debug(f"PUSH_ACK received from packet forwarder at {msg.get('MAC', addr)}")
 
     # Get the message from the socket
     def get_message(self, timeout=None):
