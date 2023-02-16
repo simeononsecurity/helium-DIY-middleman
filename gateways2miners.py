@@ -363,19 +363,32 @@ class GW2Miner:
             self.vgw_logger.debug(f"MAC Address: {mac_address}")
             self.vgw_logger.debug(f"Data: {json_data}")
             self.sock.sendto(rawmsg, vgw_address)
-            # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
+            # # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
+            # if json_data:
+            #     json_obj = json.loads(json_data)
+            #     error = json_obj.get('txpk_ack', {}).get('error', 'NONE')
+            #     if error == 'NONE':
+            #         # Log a debug message indicating that the downlink request was accepted
+            #         self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
+            #     else:
+            #         # Log a debug message indicating that the downlink request was rejected
+            #         self.vgw_logger.debug(f"Downlink request rejected by gateway at {vgw_address}: {error}")
+            # else:
+            #     # Log a debug message indicating that the downlink request was accepted
+            #     self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
+                        # Check the error field in the JSON object to determine if the downlink request was accepted or rejected
             if json_data:
                 json_obj = json.loads(json_data)
                 error = json_obj.get('txpk_ack', {}).get('error', 'NONE')
                 if error == 'NONE':
                     # Log a debug message indicating that the downlink request was accepted
-                    self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
+                    self.vgw_logger.debug(f"Downlink request accepted by gateway at {addr}")
                 else:
                     # Log a debug message indicating that the downlink request was rejected
-                    self.vgw_logger.debug(f"Downlink request rejected by gateway at {vgw_address}: {error}")
+                    self.vgw_logger.debug(f"Downlink request rejected by gateway at {addr}: {error}")
             else:
                 # Log a debug message indicating that the downlink request was accepted
-                self.vgw_logger.debug(f"Downlink request accepted by gateway at {vgw_address}")
+                self.vgw_logger.debug(f"Downlink request accepted by gateway at {addr}")
 
     # Handle PULL_ACK message
     def handle_PULL_ACK(self, msg, addr):
