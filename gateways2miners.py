@@ -342,7 +342,7 @@ class GW2Miner:
         #         'data': json_data
         #         }
         #Encode the message with the updated JSON data and send it back only to the sender of the original packet
-            mac_address = msg['MAC'] or self.vgateways_by_mac[vgw.mac].mac
+            mac_address = msg['MAC']
             vgw_address = addr
             payload = {
                 'ver': 2,
