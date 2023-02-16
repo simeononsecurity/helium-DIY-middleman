@@ -329,9 +329,21 @@ class GW2Miner:
             json_obj['token'] = token
             json_data = json.dumps(json_obj).encode('utf-8')
         # Encode the message with the updated JSON data and send it back to all the virtual gateways
-        for addr, vgw in self.vgateways_by_addr.items():
-            mac_address = self.vgateways_by_mac[vgw.mac].mac
-            vgw_address = (addr[0], addr[1])
+        # for addr, vgw in self.vgateways_by_addr.items():
+        #     mac_address = self.vgateways_by_mac[vgw.mac].mac
+        #     vgw_address = (addr[0], addr[1])
+        #     payload = {
+        #         'ver': 2,
+        #         'token': token,
+        #         'identifier': messages.MsgTxAck.IDENT,
+        #         '_NAME_': messages.MsgTxAck.NAME,
+        #         '_UNIX_TS_': time.time(),
+        #         'MAC': mac_address,
+        #         'data': json_data
+        #         }
+        #Encode the message with the updated JSON data and send it back only to the sender of the original packet
+            mac_address = msg['MAC'] or self.vgateways_by_mac[vgw.mac].mac
+            vgw_address = addr
             payload = {
                 'ver': 2,
                 'token': token,
