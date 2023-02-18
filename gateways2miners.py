@@ -283,36 +283,43 @@ class GW2Miner:
             self.sock.sendto(rawmsg, dest_addr)
             # Log a message indicating that the PULL_RESP has been forwarded
             self.vgw_logger.info(f"forwarding PULL_RESP from {addr} to gateway {vgw.mac[-8:]}, (freq:{round(txpk['freq'], 2)}, sf:{txpk['datr']}, codr:{txpk['codr']}, size:{txpk['size']})")
-            # #handle TX_ACK
-            # Extract the token from the message
-            token = msg.get('token') or random.randint(0, 2**16 - 1)
-            # Create a default response
-            txpk_ack = {"txpk_ack": {"error": "NONE"}}
-            # TODO: Handle the downlink request and update the txpk_ack response accordingly
-            # Append the txpk_ack to the TX_ACK message
-            tx_ack = json.dumps(txpk_ack).encode()
-            # Send the TX_ACK message to the destination address
-            mac_address = vgw.mac or addr
-            gw_address = dest_addr or addr
-            payload = {
-                'ver': 2,
-                'token': token,
-                'identifier': messages.MsgTxAck.IDENT,
-                '_NAME_': messages.MsgTxAck.NAME,
-                '_UNIX_TS_': time.time(),
-                'MAC': mac_address,
-                'data': tx_ack
-                }
-            msg_obj = messages.MsgTxAck()
-            rawmsg = msg_obj.encode(payload)
-            self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
-            self.vgw_logger.debug(f"Identifier: {messages.MsgTxAck.IDENT}")
-            self.vgw_logger.debug(f"Name: {messages.MsgTxAck.NAME}")
-            self.vgw_logger.debug(f"Time: {time.time()}")
-            self.vgw_logger.debug(f"MAC Address: {mac_address}")
-            self.vgw_logger.debug(f"Data: {txpk_ack}")
-            self.vgw_logger.debug(f"gw_address: {gw_address}")
-            self.sock.sendto(rawmsg, gw_address)
+
+        # #handle TX_ACK
+        self.vgw_logger.debug(f"TX_ACK DEBUG:")
+        # Extract the token from the message
+        token = msg.get('token') or random.randint(0, 2**16 - 1)
+        self.vgw_logger.debug(f"token: {token}")
+        # Create a default response
+        txpk_ack = {"txpk_ack": {"error": "NONE"}}
+        self.vgw_logger.debug(f"txpk_ack: {txpk_ack}")
+        # TODO: Handle the downlink request and update the txpk_ack response accordingly
+        # Append the txpk_ack to the TX_ACK message
+        tx_ack = json.dumps(txpk_ack).encode()
+        self.vgw_logger.debug(f"tx_ack: {tx_ack}")
+        # Send the TX_ACK message to the destination address
+        mac_address = vgw.mac or addr
+        self.vgw_logger.debug(f"mac_address: {mac_address}")
+        gw_address = dest_addr or addr
+        self.vgw_logger.debug(f"gw_address: {gw_address}")
+        payload = {
+            'ver': 2,
+            'token': token,
+            'identifier': messages.MsgTxAck.IDENT,
+            '_NAME_': messages.MsgTxAck.NAME,
+            '_UNIX_TS_': time.time(),
+            'MAC': mac_address,
+            'data': tx_ack
+            }
+        msg_obj = messages.MsgTxAck()
+        rawmsg = msg_obj.encode(payload)
+        self.vgw_logger.debug(f"Encoded Message: {rawmsg}")
+        self.vgw_logger.debug(f"Identifier: {messages.MsgTxAck.IDENT}")
+        self.vgw_logger.debug(f"Name: {messages.MsgTxAck.NAME}")
+        self.vgw_logger.debug(f"Time: {time.time()}")
+        self.vgw_logger.debug(f"MAC Address: {mac_address}")
+        self.vgw_logger.debug(f"Data: {txpk_ack}")
+        self.vgw_logger.debug(f"gw_address: {gw_address}")
+        self.sock.sendto(rawmsg, gw_address)
 
         # Create a fake PUSH_DATA message
         fake_push = messages.PULL_RESP2PUSH_DATA(msg, src_mac=vgw.mac)
@@ -336,32 +343,32 @@ class GW2Miner:
         self.gw_listening_addrs[msg['MAC']] = addr
 
     # Handle PULL_ACK message
-    def handle_PULL_ACK(self, msg, addr):
+    #def handle_PULL_ACK(self, msg, addr):
         # Log the decoded message
-        self.vgw_logger.debug(f"Decoded Message: {msg}")
+        #self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
-        rawmsg = messages.encode_message(msg)
+        #rawmsg = messages.encode_message(msg)
         # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
         #     self.sock.sendto(rawmsg, (server_ip, port_dn))
         #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
         #self.sock.sendto(rawmsg, addr)
-        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
+        #self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
         # Log a debug message indicating that a PULL_ACK has been received
-        self.vgw_logger.debug(f"PULL_ACK received from {msg.get('MAC', addr)}")
+        #self.vgw_logger.debug(f"PULL_ACK received from {msg.get('MAC', addr)}")
 
     # Handle PUSH_ACK message
-    def handle_PUSH_ACK(self, msg, addr):
+    #def handle_PUSH_ACK(self, msg, addr):
         # Log the decoded message
-        self.vgw_logger.debug(f"Decoded Message: {msg}")
+        #self.vgw_logger.debug(f"Decoded Message: {msg}")
         # Encode the message and send it back to all the virtual gateways
-        rawmsg = messages.encode_message(msg)
+        #rawmsg = messages.encode_message(msg)
         # for (server_ip, port_dn), vgw in self.vgateways_by_addr.items():
         #     self.sock.sendto(rawmsg, (server_ip, port_dn))
         #     self.vgw_logger.debug(f" Raw Message: {rawmsg}, Server IP: ({server_ip}, Down Port: {port_dn})")
         #self.sock.sendto(rawmsg, addr)
-        self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
+        #self.vgw_logger.debug(f" Raw Message: {rawmsg}, Addr: {addr}")
         # Log a debug message indicating that a PUSH_ACK has been received
-        self.vgw_logger.debug(f"PUSH_ACK received from at {msg.get('MAC', addr)}")
+        #self.vgw_logger.debug(f"PUSH_ACK received from at {msg.get('MAC', addr)}")
 
     # Get the message from the socket
     def get_message(self, timeout=None):
