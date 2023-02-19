@@ -293,9 +293,6 @@ class GW2Miner:
         txpk_ack = {"txpk_ack": {"error": "NONE"}}
         self.vgw_logger.debug(f"txpk_ack: {txpk_ack}")
         # TODO: Handle the downlink request and update the txpk_ack response accordingly
-        # Append the txpk_ack to the TX_ACK message
-        tx_ack = json.dumps(txpk_ack.decode())
-        self.vgw_logger.debug(f"tx_ack: {tx_ack}")
         # Send the TX_ACK message to the destination address
         mac_address = vgw.mac or addr
         self.vgw_logger.debug(f"mac_address: {mac_address}")
@@ -308,7 +305,7 @@ class GW2Miner:
             '_NAME_': messages.MsgTxAck.NAME,
             '_UNIX_TS_': time.time(),
             'MAC': mac_address,
-            'data': tx_ack
+            'data': txpk_ack
             }
         msg_obj = messages.MsgTxAck()
         rawmsg = msg_obj.encode(payload)
