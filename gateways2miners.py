@@ -83,6 +83,8 @@ class GW2Miner:
         # =========================
         # Create a UDP socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 1024)
         # Bind the socket to the specified port and all available IP addresses
         self.sock.bind(("0.0.0.0", port))
         # Log the start of the listening socket
@@ -151,7 +153,7 @@ class GW2Miner:
                 self.send_stats()
 
             # Receive a message from the socket
-            msg, addr = self.get_message(timeout=5)
+            msg, addr = self.get_message(timeout=20)
             # Update the start timestamp
             start_ts = time.time()
             # If no message was received, continue the loop
