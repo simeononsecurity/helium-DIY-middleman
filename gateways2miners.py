@@ -267,10 +267,15 @@ class GW2Miner:
             return
         # Get the destination address for this virtual gateway
         dest_addr = self.gw_listening_addrs.get(vgw.mac)
+
         # Check if the destination address is not found
         if not dest_addr:
-            # Log a warning message
-            self.vgw_logger.warning(f"PULL_RESP from {addr} has no matching real gateway, will only be received by Virtual Miners")
+            # try another way of setting the dest_addr
+            dest_addr = self.gw_listening_addrs[msg['MAC']]
+            # Check if the destination address is not found
+            if not dest_addr:
+                # Log a warning message
+                self.vgw_logger.warning(f"PULL_RESP from {addr} has no matching real gateway, will only be received by Virtual Miners")
         # Get the txpk from the message
         txpk = msg['data'].get('txpk')
 
