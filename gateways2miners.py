@@ -271,7 +271,7 @@ class GW2Miner:
         # Check if the destination address is not found
         if not dest_addr:
             # try another way of setting the dest_addr
-            dest_addr = self.gw_listening_addrs[msg['MAC']]
+            dest_addr = self.gw_listening_addrs[msg.get('MAC', addr)]
             # Check if the destination address is not found
             if not dest_addr:
                 # Log a warning message
