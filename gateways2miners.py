@@ -271,7 +271,7 @@ class GW2Miner:
         # Check if the destination address is not found
         if not dest_addr:
             # try another way of setting the dest_addr
-            dest_addr = self.gw_listening_addrs['MAC'] or self.gw_listening_addrs
+            #dest_addr = self.gw_listening_addrs['MAC'] or self.gw_listening_addrs
             # Check if the destination address is not found
             if not dest_addr:
                 # Log a warning message
@@ -456,7 +456,7 @@ class GW2Miner:
 # Check if the packet is a POC challenge
 def packet_is_poc_challenge(rxpk: dict):
     # Check if the size is 52 and the datr is 'SF9BW125'
-    return rxpk.get('size') == 52 and rxpk.get('datr') == 'SF9BW125'
+    return rxpk.get('size') == 52 #and rxpk.get('datr') == 'SF9BW125'
 
 
 # Configure the logger
