@@ -1,4 +1,7 @@
 # Middleman for Helium
+
+[DockerHub](https://hub.docker.com/r/simeononsecurity/helium_diy_middleman)
+
 Initially this was written by folks who know what they're doing.  I more or less don't, but guided by wizards I managed to muddle through.  You can do the same.
 
 Code here acts as a middleman between LoRa gateways running Semtech packet forwarders and servers ingesting packet forwarder data.  For you non-geeks, what this code does is tell your miner to report different signals to the blockchain than what the packet forwarder is actually receiving.  
