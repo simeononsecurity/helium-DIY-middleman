@@ -30,13 +30,13 @@ ENV serv_port_down=1680
 RUN echo ${PATH}
 
 # Update Packages
-RUN apt-get update && apt-get install -y apt-utils && apt-get -y -f -m --show-progress full-upgrade
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils && apt-get -y -f -m --show-progress --no-install-recommends full-upgrade
 
 # Install Supporting Software
-RUN apt-get install -y git cmake make htop wget python3 python3-pip python3-dev systemctl gcc curl gpg
+RUN apt-get install -y --no-install-recommends git cmake make htop wget python3 python3-pip python3-dev systemctl gcc curl gpg
 # Fix Python3 and Python3-pip
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --upgrade setuptools
+RUN python3 -m pip install --upgrade --no-cache-dir pip
+RUN python3 -m pip install --upgrade --no-cache-dir setuptools
 
 # Install Middle-Man
 RUN git clone https://github.com/simeononsecurity/helium-DIY-middleman.git
@@ -61,4 +61,8 @@ RUN rm /home/middleman/configs/*.example > /dev/null
 #RUN systemctl start middleman
 RUN cd /helium-DIY-middleman/ && chmod +x ./dockersetup.sh
 RUN cd /helium-DIY-middleman/ && cat ./dockersetup.sh
+
+# Clean APT
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 CMD ["/bin/bash", "/helium-DIY-middleman/dockersetup.sh"]
