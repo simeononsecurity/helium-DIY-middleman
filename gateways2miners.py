@@ -11,8 +11,6 @@ from hashlib import md5
 from src import messages
 from src.vgateway import VirtualGateway
 
-
-
 class GW2Miner:
     def __init__(self, port, vminer_configs_paths, keepalive_interval=10, stat_interval=30, debug=True, tx_power_adjustment=0.0, rx_power_adjustment=0.0):
 
@@ -286,7 +284,7 @@ class GW2Miner:
 
 
 def packet_is_poc_challenge(rxpk: dict):
-    return (rxpk.get('size') == 52 and rxpk.get('datr') == 'SF9BW125') or (rxpk.get('size') == 21 and str(rxpk.get('data')).startswith("4"))
+    return (rxpk.get('size') == 52 and str(rxpk.get('data')).startswith("4")) or (rxpk.get('size') == 21 and str(rxpk.get('data')).startswith("4"))
     #return (rxpk.get('size') == 52 ) and rxpk.get('datr') == 'SF9BW125'
 
 def configure_logger(debug=False):
