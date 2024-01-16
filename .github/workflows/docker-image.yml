@@ -32,9 +32,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-    - 
-      name: Build the Docker image
-      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/armhf,linux/arm64 -t simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
     -
         name: Build and push
         uses: docker/build-push-action@v2
@@ -50,6 +47,19 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.PAT_TOKEN }}
 
-    - name: Build the simeononsecurity/helium_diy_middleman:latest Docker image for Github Registry
-      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes && docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/simeononsecurity/helium_diy_middleman:latest --progress=plain --push .
-
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        platforms: linux/amd64,linux/armhf,linux/arm64
+        file: Dockerfile
+        cache-from: |
+          type=gha .
+          type=inline .
+          simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+          type=registry,ref=simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+        cache-to: |
+          type=registry,ref=simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+        tags: simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest, ghcr.io/simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+        github-token: ${{ secrets.PAT_TOKEN }}
