@@ -57,9 +57,9 @@ jobs:
         cache-from: |
           type=gha .
           type=inline .
-          simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
-          type=registry,ref=simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+          ${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+          type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
         cache-to: |
-          type=registry,ref=simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
-        tags: simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest, ghcr.io/simeononsecurity/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+          type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
+        tags: ${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest, ghcr.io/${{ secrets.DOCKER_USERNAME }}/simeononsecurity/helium_diy_middleman:latest
         github-token: ${{ secrets.PAT_TOKEN }}
